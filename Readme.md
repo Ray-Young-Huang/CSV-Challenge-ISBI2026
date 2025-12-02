@@ -188,7 +188,7 @@ We provide three submission channels:
 - Google Drive (for Method B): Upload the Docker image to Google Drive and submit the share link
 - Baidu Netdisk (for Method B): Upload the Docker image to Baidu Netdisk and submit the share link
 
-[EMAIL LINK](zhuzhiyuan113@163.com)
+[EMAIL LINK](mailto:zhuzhiyuan113@163.com)
 
 ## FAQ
 
