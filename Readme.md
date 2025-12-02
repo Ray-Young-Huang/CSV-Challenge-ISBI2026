@@ -154,6 +154,14 @@ class Model(nn.Module):
 
 First, organize your trained model weights and inference scripts according to the directory structure above. Then submit using one of the following methods:
 
+#### Preparation
+
+```bash
+# Enter the docker.submission_template directory and build a Docker image
+cd docker_submission_template
+docker build -t my-submission:latest .
+```
+
 #### Method A: Docker Hub (Recommended)
 
 ```bash
