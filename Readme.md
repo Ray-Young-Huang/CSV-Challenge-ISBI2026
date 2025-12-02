@@ -185,8 +185,8 @@ docker save -o my-submission.tar my-submission:latest
 We provide three submission channels:
 
 - Docker Hub (for Method A): Push the Docker image to Docker Hub and send the image link by email
-- Google Drive (for Method B): Upload the Docker image to Google Drive and submit the share link
-- Baidu Netdisk (for Method B): Upload the Docker image to Baidu Netdisk and submit the share link
+- Google Drive (for Method B): Upload the Docker image to Google Drive and submit the share link by email
+- Baidu Netdisk (for Method B): Upload the Docker image to Baidu Netdisk and submit the share link by email
 
 [EMAIL LINK](mailto:zhuzhiyuan113@163.com)
 
