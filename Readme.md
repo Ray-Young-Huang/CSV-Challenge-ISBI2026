@@ -10,7 +10,7 @@ This project implements a semi-supervised carotid plaque segmentation and classi
 ## Project Structure
 
 ```
-release_version/
+CSV-Challenge-ISBI2026/
 ├── baseline/                          # Baseline model training code
 │   ├── Dockerfile                     # Docker image configuration
 │   ├── Dataset.py                     # Dataset loading and data augmentation
@@ -85,8 +85,14 @@ class Args:
 #### Baseline Model Training
 
 ```bash
+# Enter the baseline directory
+cd baseline
+
+# Run training
 python train.py
 ```
+
+**Note**: Make sure you have modified the `root_path` in the `Args` class to point to your actual data directory before running the training.
 
 During training:
 
@@ -141,60 +147,134 @@ class Model(nn.Module):
         pass
 ```
 
-### 4. About run_infer.py ⭐
+### 5. About run_infer.py ⭐
 
 `run_infer.py` is the core script for testing within the Docker submission environment. Please do not modify its arguments or interface; otherwise, the evaluation procedure will fail.
 
 ## Submission
+
+### Prerequisites
+
+Before submission, please ensure:
+- Docker is installed on your system ([Install Docker](https://docs.docker.com/get-docker/))
+- You have a Docker Hub account ([Register here](https://hub.docker.com/signup))
+- You have logged in with `docker login`
 
 #### What to Submit
 
 - Name your model file `model.py` and place it in `docker_submission_template/models/`
 - Name your weight file `best_model.pth` and place it in `docker_submission_template/weights/`
 
-First, organize your trained model weights and inference scripts according to the directory structure above. Then submit using one of the following methods:
-
-#### Preparation
+### Step 1: Build Docker Image
 
 ```bash
-# Enter the docker.submission_template directory and build a Docker image
+# Enter the docker_submission_template directory
 cd docker_submission_template
+
+# Build the Docker image
 docker build -t my-submission:latest .
+
+# Verify the build was successful
+docker images | grep my-submission
 ```
 
-#### Method A: Docker Hub (Recommended)
+**Tip**: Building may take several minutes. If build fails, check the Dockerfile and requirements.txt.
+
+### Step 2: Test Locally (Recommended)
+
+Before submitting, test your Docker image locally to ensure it works correctly:
 
 ```bash
+# Run the container with test data
+docker run --rm \
+  -v /path/to/test/data:/data \
+  -v /path/to/output:/output \
+  my-submission:latest
+
+# Check the output results
+ls /path/to/output/preds
+```
+
+**Expected Output Structure:**
+```
+/path/to/output/preds/
+├── case_001.h5
+├── case_002.h5
+└── ...
+```
+
+Each output `.h5` file should contain:
+- `pred_long`: Longitudinal view segmentation prediction (H×W, uint8, values: 0=background, 1=vessel, 2=plaque)
+- `pred_trans`: Transverse view segmentation prediction (H×W, uint8, values: 0=background, 1=vessel, 2=plaque)
+- `cls_pred`: Classification prediction (scalar, uint8, values: 0=RADS2, 1=RADS3-4)
+
+**Note**: 
+- Input data directory should be mounted to `/data`
+- Output predictions will be saved to `/output/preds/` inside the container
+- [预期输出内容的详细说明待补充]
+
+### Step 3: Push to Docker Hub
+
+```bash
+# Login to Docker Hub
 docker login
-docker tag my-submission:latest YOUR_USERNAME/my-submission:latest
-docker push YOUR_USERNAME/my-submission:latest
 
-# Send the image address to the organizing committee:
-# YOUR_USERNAME/my-submission:latest
+# Tag your image (replace YOUR_USERNAME with your Docker Hub username)
+docker tag my-submission:latest YOUR_USERNAME/my-submission:latest
+
+# Push to Docker Hub
+docker push YOUR_USERNAME/my-submission:latest
 ```
 
-#### Method B: Save as File
+**Note**: 
+- Pushing may take 10-30 minutes depending on image size and network speed
+- The image should be kept under 5GB for faster evaluation
+- From mainland China, you may need to configure a proxy or mirror
+
+### Step 4: Set Image Visibility
+
+After pushing, ensure your image is publicly accessible:
+1. Go to [Docker Hub](https://hub.docker.com/)
+2. Navigate to your repository
+3. Go to **Settings** → Set visibility to **Public**
+
+### Step 5: Submit on Platform
+
+Submit your Docker image link on the **CSV Challenge Platform**:
+- Go to the CSV Challenge Platform submission page
+- Submit your Docker image link in the format: `YOUR_USERNAME/my-submission:latest`
+
+### Verification
+
+To verify your submission was successful, you can pull your image from Docker Hub:
 
 ```bash
-docker save -o my-submission.tar my-submission:latest
-
-# Upload my-submission.tar to your preferred cloud storage
-# Send the download link to the organizing committee
+docker pull YOUR_USERNAME/my-submission:latest
 ```
 
-We provide three submission channels:
-
-- Docker Hub (for Method A): Push the Docker image to Docker Hub and send the image link by email
-- Google Drive (for Method B): Upload the Docker image to Google Drive and submit the share link by email
-- Baidu Netdisk (for Method B): Upload the Docker image to Baidu Netdisk and submit the share link by email
-
-[EMAIL LINK](mailto:zhuzhiyuan113@163.com)
+If you encounter any issues, please contact: csv2026_challenge@163.com
 
 ## FAQ
 
-### Q1: Docker image push failed frequently?
+### Q1: Docker image push failed or very slow?
 
 Answer:
+- Check your network connection
+- From mainland China, configure Docker mirror acceleration (e.g., Alibaba Cloud, Tencent Cloud mirrors)
+- Use a VPN if necessary
+- If push timeout occurs, try `docker push` again (it will resume from where it stopped)
 
-- From mainland China, you may need to use a proxy server to access Docker Hub
-- Alternatively, you can submit your image via Google Drive or Baidu Netdisk
+### Q2: How to reduce Docker image size?
+
+Answer:
+- Remove unnecessary dependencies from requirements.txt
+- Use multi-stage builds in Dockerfile
+- Clean up cache and temporary files in Dockerfile
+
+### Q3: How to debug if the Docker container fails during evaluation?
+
+Answer:
+- Test locally first using the command in Step 2
+- Check container logs: `docker logs <container_id>`
+- Ensure your model.py and weights are correctly placed
+- Verify run_infer.py interface hasn't been modified
